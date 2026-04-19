@@ -47,6 +47,15 @@ export function StepPages({ form, errors }: Props) {
     form.setValue(fieldPath, value, { shouldDirty: true })
   }
 
+  function updateType(index: number, value: string) {
+    const typePath = `content.pages.${index}.type` as const
+    form.setValue(
+      typePath,
+      (value || undefined) as ProjectConfig["content"]["pages"][number]["type"],
+      { shouldDirty: true }
+    )
+  }
+
   function toggleSection(index: number, section: string) {
     const current = pages[index]?.sections || []
     const sections = current.includes(section)
@@ -109,6 +118,24 @@ export function StepPages({ form, errors }: Props) {
                   className="rounded border px-2 py-1 text-xs text-red-500"
                 >✕</button>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted w-16">Type</label>
+              <select
+                value={page.type || ""}
+                onChange={(e) => updateType(i, e.target.value)}
+                className="rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+              >
+                <option value="">— none —</option>
+                <option value="landing">Landing</option>
+                <option value="dashboard">Dashboard</option>
+                <option value="settings">Settings</option>
+                <option value="list">List</option>
+                <option value="detail">Detail</option>
+                <option value="board">Board</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
 
             <div>

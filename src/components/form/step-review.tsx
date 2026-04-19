@@ -57,6 +57,18 @@ export function StepReview({ data }: Props) {
           <span className="font-medium">{data.content.pages.length} page(s)</span>
         </div>
         <div className="flex justify-between">
+          <span className="text-muted">Capabilities</span>
+          <span className="font-medium">{data.app?.capabilities?.length || 0}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted">Data models</span>
+          <span className="font-medium">{data.app?.dataModels?.length || 0}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted">Integrations</span>
+          <span className="font-medium">{data.app?.integrations?.length || 0}</span>
+        </div>
+        <div className="flex justify-between">
           <span className="text-muted">Framework</span>
           <span className="font-medium capitalize">{data.tech.framework}</span>
         </div>
