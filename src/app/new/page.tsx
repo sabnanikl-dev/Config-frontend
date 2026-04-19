@@ -9,12 +9,14 @@ import { StepBrand } from "@/components/form/step-brand"
 import { StepTech } from "@/components/form/step-tech"
 // StepPages is imported when needed for Issue #4
 import { StepPages } from "@/components/form/step-pages"
+import { StepApp } from "@/components/form/step-app"
 import { StepReview } from "@/components/form/step-review"
 
 const steps = [
   { id: "project" as const, label: "Project Info", icon: "📋" },
   { id: "brand" as const, label: "Brand", icon: "🎨" },
   { id: "pages" as const, label: "Pages", icon: "📄" },
+  { id: "app" as const, label: "App Shape", icon: "🧩" },
   { id: "tech" as const, label: "Tech Stack", icon: "⚙️" },
   { id: "review" as const, label: "Review & Export", icon: "🚀" },
 ]
@@ -82,6 +84,9 @@ export default function NewPage() {
         )}
         {currentStep === "pages" && (
           <StepPages form={form} errors={form.formState.errors} />
+        )}
+        {currentStep === "app" && (
+          <StepApp form={form} errors={form.formState.errors} />
         )}
         {currentStep === "tech" && (
           <StepTech register={form.register} errors={form.formState.errors} />

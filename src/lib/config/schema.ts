@@ -29,9 +29,17 @@ export const ProjectConfigSchema = z.object({
         slug: z.string().min(1, "Page slug is required"),
         sections: z.array(z.string()),
         description: z.string(),
+        type: z
+          .enum(["landing", "dashboard", "settings", "list", "detail", "board", "admin"])
+          .optional(),
       })
     ).min(1, "At least one page is required"),
     assets: z.array(z.string()),
+  }),
+  app: z.object({
+    capabilities: z.array(z.string()),
+    dataModels: z.array(z.string()),
+    integrations: z.array(z.string()),
   }),
   tech: z.object({
     framework: z.enum(["next", "astro", "vite"]),
@@ -43,6 +51,11 @@ export const ProjectConfigSchema = z.object({
   agents: z.object({
     lead: z.enum(["claude-code", "codex", "hermes"]),
     reviewer: z.enum(["claude-code", "codex", "hermes"]),
+    workflow: z.object({
+      builder: z.string(),
+      updater: z.string(),
+      escalation: z.string(),
+    }),
   }),
 })
 
@@ -77,6 +90,11 @@ export const defaultConfig: ProjectConfig = {
     ],
     assets: [],
   },
+  app: {
+    capabilities: [],
+    dataModels: [],
+    integrations: [],
+  },
   tech: {
     framework: "next",
     deploy: "static",
@@ -87,5 +105,10 @@ export const defaultConfig: ProjectConfig = {
   agents: {
     lead: "claude-code",
     reviewer: "codex",
+    workflow: {
+      builder: "",
+      updater: "",
+      escalation: "",
+    },
   },
 }
