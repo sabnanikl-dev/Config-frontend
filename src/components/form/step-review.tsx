@@ -57,6 +57,10 @@ export function StepReview({ data }: Props) {
           <span className="font-medium">{data.content.pages.length} page(s)</span>
         </div>
         <div className="flex justify-between">
+          <span className="text-muted">Assets</span>
+          <span className="font-medium">{data.content.assets.length}</span>
+        </div>
+        <div className="flex justify-between">
           <span className="text-muted">Capabilities</span>
           <span className="font-medium">{data.app?.capabilities?.length || 0}</span>
         </div>
@@ -89,6 +93,19 @@ export function StepReview({ data }: Props) {
           {yaml.dump(data, { indent: 2 })}
         </pre>
       </details>
+
+      {data.content.assets.length > 0 && (
+        <div className="rounded-lg border p-4 space-y-2">
+          <h3 className="text-sm font-medium">Asset Paths</h3>
+          <ul className="space-y-1 text-sm text-muted">
+            {data.content.assets.map((asset) => (
+              <li key={asset}>
+                <code>{asset}</code>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Export buttons */}
       <div className="flex flex-wrap gap-3">

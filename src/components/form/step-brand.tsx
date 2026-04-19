@@ -1,10 +1,13 @@
 "use client"
 
-import type { FieldErrors, UseFormRegister } from "react-hook-form"
+import Image from "next/image"
+import React from "react"
+import type { FieldErrors, UseFormReturn } from "react-hook-form"
 import type { ProjectConfig } from "@/lib/config/schema"
+import { cn } from "@/lib/utils/cn"
 
 interface Props {
-  register: UseFormRegister<ProjectConfig>
+  form: UseFormReturn<ProjectConfig>
   errors: FieldErrors<ProjectConfig>
 }
 
@@ -18,7 +21,93 @@ const colorFields = [
   { field: "brand.colors.border" as const, label: "Border" },
 ]
 
-export function StepBrand({ register, errors }: Props) {
+function normalizeAssetFilename(fileName: string) {
+  const dotIndex = fileName.lastIndexOf(".")
+  const baseName = dotIndex >= 0 ? fileName.slice(0, dotIndex) : fileName
+  const extension = dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : ""
+
+  const normalizedBase = baseName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+
+  return `${normalizedBase || "asset"}${extension}`
+}
+
+export function StepBrand({ form, errors }: Props) {
+  const { register, setValue, watch } = form
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
+  const [dragActive, setDragActive] = React.useState(false)
+  const [previews, setPreviews] = React.useState<Record<string, string>>({})
+  const [uploadNotice, setUploadNotice] = React.useState<string | null>(null)
+  const assets = watch("content.assets") || []
+
+  const updateAssets = React.useCallback((nextAssets: string[]) => {
+    setValue("content.assets", nextAssets, { shouldDirty: true, shouldValidate: true })
+  }, [setValue])
+
+  const addFiles = React.useCallback((fileList: FileList | null) => {
+    if (!fileList?.length) return
+
+    const files = Array.from(fileList).filter((file) => file.type.startsWith("image/"))
+    if (!files.length) {
+      setUploadNotice("Only image files are supported here.")
+      return
+    }
+
+    setUploadNotice(
+      "Suggested paths were added to the config. Copy the real files into public/assets before shipping the scaffold."
+    )
+
+    const currentAssets = watch("content.assets") || []
+    const nextAssets = [...currentAssets]
+
+    setPreviews((current) => {
+      const next = { ...current }
+
+      files.forEach((file) => {
+        const assetPath = `/assets/${normalizeAssetFilename(file.name)}`
+        if (!nextAssets.includes(assetPath)) {
+          nextAssets.push(assetPath)
+        }
+
+        if (next[assetPath]) {
+          URL.revokeObjectURL(next[assetPath])
+        }
+        next[assetPath] = URL.createObjectURL(file)
+      })
+
+      return next
+    })
+
+    updateAssets(nextAssets)
+  }, [updateAssets, watch])
+
+  React.useEffect(() => {
+    return () => {
+      Object.values(previews).forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [previews])
+
+  function updateAsset(index: number, value: string) {
+    const nextAssets = [...assets]
+    nextAssets[index] = value
+    updateAssets(nextAssets)
+  }
+
+  function removeAsset(index: number) {
+    const assetPath = assets[index]
+    updateAssets(assets.filter((_, assetIndex) => assetIndex !== index))
+    setPreviews((current) => {
+      if (!current[assetPath]) return current
+      URL.revokeObjectURL(current[assetPath])
+      const next = { ...current }
+      delete next[assetPath]
+      return next
+    })
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -69,6 +158,115 @@ export function StepBrand({ register, errors }: Props) {
             placeholder="system-ui, -apple-system, sans-serif"
           />
         </div>
+      </div>
+
+      <div className="border-t pt-6 space-y-4">
+        <div>
+          <h3 className="text-lg font-medium">Project Assets</h3>
+          <p className="mt-1 text-sm text-muted">
+            Drag images here to generate scaffold-ready asset paths under <code>/assets</code>.
+          </p>
+        </div>
+
+        <div
+          onDragOver={(event) => {
+            event.preventDefault()
+            setDragActive(true)
+          }}
+          onDragLeave={(event) => {
+            event.preventDefault()
+            setDragActive(false)
+          }}
+          onDrop={(event) => {
+            event.preventDefault()
+            setDragActive(false)
+            addFiles(event.dataTransfer.files)
+          }}
+          className={cn(
+            "rounded-xl border-2 border-dashed p-6 transition-colors",
+            dragActive ? "border-primary bg-accent/40" : "border-border bg-background"
+          )}
+        >
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Drop logo, hero, or background images</p>
+              <p className="text-sm text-muted">
+                We will preview the image and add a suggested relative path to your config.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent/50"
+            >
+              Choose files
+            </button>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(event) => {
+              addFiles(event.target.files)
+              event.target.value = ""
+            }}
+          />
+        </div>
+
+        {uploadNotice && (
+          <p className="text-sm text-muted">{uploadNotice}</p>
+        )}
+
+        {assets.length > 0 && (
+          <div className="space-y-3">
+            {assets.map((assetPath, index) => (
+              <div key={`${assetPath}-${index}`} className="rounded-lg border border-border p-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="h-20 w-20 overflow-hidden rounded-md border border-border bg-accent/40">
+                    {previews[assetPath] ? (
+                      <Image
+                        src={previews[assetPath]}
+                        alt={assetPath}
+                        width={80}
+                        height={80}
+                        unoptimized
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center px-2 text-center text-xs text-muted">
+                        No preview
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <label className="block text-sm font-medium">
+                      Asset path
+                      <input
+                        type="text"
+                        value={assetPath}
+                        onChange={(event) => updateAsset(index, event.target.value)}
+                        className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-mono"
+                      />
+                    </label>
+                    <p className="text-xs text-muted">
+                      Suggested location: <code>public{assetPath}</code>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeAsset(index)}
+                    className="rounded-md border border-border px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {errors.brand?.colors && (
