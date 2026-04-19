@@ -42,8 +42,9 @@ export function StepPages({ form, errors }: Props) {
     form.setValue("content.pages", copy, { shouldDirty: true })
   }
 
-  function updateField(index: number, field: string, value: string) {
-    form.setValue(`content.pages.${index}.${field}` as any, value, { shouldDirty: true })
+  function updateField(index: number, field: "slug" | "description", value: string) {
+    const fieldPath = `content.pages.${index}.${field}` as const
+    form.setValue(fieldPath, value, { shouldDirty: true })
   }
 
   function toggleSection(index: number, section: string) {
@@ -51,7 +52,8 @@ export function StepPages({ form, errors }: Props) {
     const sections = current.includes(section)
       ? current.filter((s: string) => s !== section)
       : [...current, section]
-    form.setValue(`content.pages.${index}.sections` as any, sections, { shouldDirty: true })
+    const sectionsPath = `content.pages.${index}.sections` as const
+    form.setValue(sectionsPath, sections, { shouldDirty: true })
   }
 
   return (
