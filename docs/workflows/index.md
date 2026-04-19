@@ -37,6 +37,18 @@ Look for: console.log, unused imports, type issues, formatting.
   4. Code style matches conventions?
   5. No debug code left in?
 
+## Reviewer Signatures
+
+Every PR comment must end with a signature line identifying the agent that wrote it:
+
+```
+— Hermes
+— Claude Code
+— Codex
+```
+
+Applies to: review summaries, inline comments, approval/rejection notes. Keeps accountability and thread context when multiple agents touch the same PR.
+
 ## Merge Verification (after API merge call)
 
 1. Parse response: check `"merged": true` in JSON
