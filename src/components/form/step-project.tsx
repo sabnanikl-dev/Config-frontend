@@ -13,7 +13,7 @@ export function StepProject({ register, errors }: Props) {
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-foreground">Project Info</h2>
-        <p className="mt-2 text-muted-foreground">
+        <p className="mt-2 text-muted">
           Basic info about the project — this sets up the repo name, description, and GitHub metadata.
         </p>
       </div>

@@ -37,7 +37,7 @@ export function StepReview({ data }: Props) {
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-foreground">Review & Export</h2>
-        <p className="mt-2 text-muted-foreground">
+        <p className="mt-2 text-muted">
           Preview your config and download it in your preferred format.
         </p>
       </div>
@@ -45,27 +45,27 @@ export function StepReview({ data }: Props) {
       {/* Quick summary */}
       <div className="rounded-lg border p-4 space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Project</span>
+          <span className="text-muted">Project</span>
           <span className="font-medium">{data.project.name || "—"}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Repo</span>
+          <span className="text-muted">Repo</span>
           <span className="font-medium">{data.project.owner}/{data.project.repo || "—"}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Pages</span>
+          <span className="text-muted">Pages</span>
           <span className="font-medium">{data.content.pages.length} page(s)</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Framework</span>
+          <span className="text-muted">Framework</span>
           <span className="font-medium capitalize">{data.tech.framework}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Deploy</span>
+          <span className="text-muted">Deploy</span>
           <span className="font-medium capitalize">{data.tech.deploy}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Agents</span>
+          <span className="text-muted">Agents</span>
           <span className="font-medium">{data.agents.lead} / {data.agents.reviewer}</span>
         </div>
       </div>

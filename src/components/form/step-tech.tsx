@@ -13,7 +13,7 @@ export function StepTech({ register }: Props) {
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-foreground">Tech Stack</h2>
-        <p className="mt-2 text-muted-foreground">
+        <p className="mt-2 text-muted">
           Choose framework, deployment provider, and agent assignments.
         </p>
       </div>
@@ -106,7 +106,7 @@ export function StepTech({ register }: Props) {
 
       <div className="border-t pt-6">
         <label htmlFor="plugins" className="block text-sm font-medium mb-1">Custom Plugins</label>
-        <p className="text-sm text-muted-foreground mb-2">One package per line.</p>
+        <p className="text-sm text-muted mb-2">One package per line.</p>
         <textarea
           id="plugins"
           {...register("tech.plugins", {

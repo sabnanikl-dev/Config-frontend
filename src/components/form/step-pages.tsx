@@ -59,7 +59,7 @@ export function StepPages({ form, errors }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Pages</h2>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-muted">
             Define pages and sections. Each page generates a route and a GitHub Issue.
           </p>
         </div>
@@ -80,7 +80,7 @@ export function StepPages({ form, errors }: Props) {
         {pages.map((page, i) => (
           <div key={i} className="rounded-lg border p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">#{i + 1}</span>
+              <span className="text-sm text-muted">#{i + 1}</span>
               <input
                 type="text"
                 value={page.slug || ""}
@@ -139,7 +139,7 @@ export function StepPages({ form, errors }: Props) {
             />
 
             {page.sections.length > 0 && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted">
                 Route: /{page.slug} Sections: {page.sections.join(", ")}
               </p>
             )}
