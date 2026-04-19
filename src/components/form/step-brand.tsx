@@ -24,7 +24,7 @@ export function StepBrand({ register, errors }: Props) {
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-foreground">Brand Colors</h2>
-        <p className="mt-2 text-muted-foreground">
+        <p className="mt-2 text-muted">
           Define your brand palette. These become Tailwind CSS tokens in the scaffold.
         </p>
       </div>

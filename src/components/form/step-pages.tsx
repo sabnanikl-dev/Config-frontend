@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import { cn } from "@/lib/utils/cn"
-import type { FieldErrors, UseFormRegister } from "react-hook-form"
+import type { UseFormReturn, FieldErrors } from "react-hook-form"
 import type { ProjectConfig } from "@/lib/config/schema"
 
 interface Props {
-  register: UseFormRegister<ProjectConfig>
+  form: UseFormReturn<ProjectConfig>
   errors: FieldErrors<ProjectConfig>
 }
 
@@ -41,29 +41,23 @@ const SECTION_OPTIONS = [
   "featured-products", "image-grid", "video",
 ]
 
-export function StepPages({ register, errors }: Props) {
-  // For dynamic pages management, we use a simple state-based approach
-  // The actual data will be synced to the form via the register call on submit
-  const pagesStr = typeof window !== "undefined"
-    ? window.localStorage.getItem("wizard_pages") ||
-      JSON.stringify([{ slug: "home", sections: ["hero", "footer"], description: "" }])
-    : JSON.stringify([{ slug: "home", sections: ["hero", "footer"], description: "" }])
-
-  const [pages, setPages] = React.useState<
-    Array<{ slug: string; sections: string[]; description: string }>
-  >(() => JSON.parse(pagesStr))
+export function StepPages({ form, errors }: Props) {
+  const { register, watch, setValue } = form
+  const pages = watch("content.pages") ?? []
 
   function addPage() {
-    const newPages = [...pages, { slug: "", sections: [], description: "" }]
-    setPages(newPages)
-    window.localStorage.setItem("wizard_pages", JSON.stringify(newPages))
+    setValue("content.pages", [
+      ...pages,
+      { slug: "", sections: [], description: "" },
+    ])
   }
 
   function removePage(index: number) {
     if (pages.length <= 1) return
-    const newPages = pages.filter((_, i) => i !== index)
-    setPages(newPages)
-    window.localStorage.setItem("wizard_pages", JSON.stringify(newPages))
+    setValue(
+      "content.pages",
+      pages.filter((_, i) => i !== index)
+    )
   }
 
   function movePage(from: number, delta: number) {
@@ -72,19 +66,17 @@ export function StepPages({ register, errors }: Props) {
     const copy = [...pages]
     const [item] = copy.splice(from, 1)
     copy.splice(to, 0, item)
-    setPages(copy)
-    window.localStorage.setItem("wizard_pages", JSON.stringify(copy))
+    setValue("content.pages", copy)
   }
 
   function toggleSection(pageIndex: number, section: string) {
-    const copy = [...pages]
-    const page = copy[pageIndex]
+    const page = pages[pageIndex]
     const sections = page.sections.includes(section)
       ? page.sections.filter((s) => s !== section)
       : [...page.sections, section]
+    const copy = [...pages]
     copy[pageIndex] = { ...page, sections }
-    setPages(copy)
-    window.localStorage.setItem("wizard_pages", JSON.stringify(copy))
+    setValue("content.pages", copy)
   }
 
   return (
@@ -92,7 +84,7 @@ export function StepPages({ register, errors }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Pages</h2>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-muted">
             Define pages and sections. Each page generates a route and a GitHub Issue.
           </p>
         </div>
@@ -109,7 +101,7 @@ export function StepPages({ register, errors }: Props) {
         {pages.map((page, i) => (
           <div key={i} className="rounded-lg border p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">#{i + 1}</span>
+              <span className="text-sm text-muted">#{i + 1}</span>
               <input
                 {...register(`content.pages.${i}.slug` as const)}
                 className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm"
@@ -146,8 +138,8 @@ export function StepPages({ register, errors }: Props) {
             />
 
             {page.sections.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Route: /{page.slug} Sections: {page.sections.join(", ")}
+              <p className="text-xs text-muted">
+                Route: /{page.slug} · Sections: {page.sections.join(", ")}
               </p>
             )}
           </div>

@@ -60,8 +60,8 @@ export default function NewPage() {
                 isActive
                   ? "bg-primary text-white"
                   : isComplete
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-accent text-foreground"
+                    : "text-muted hover:text-foreground"
               }`}
             >
               <span>{step.icon}</span>
@@ -107,7 +107,7 @@ export default function NewPage() {
               Next
             </button>
           ) : (
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-muted">
               Download your config file above.
             </span>
           )}
