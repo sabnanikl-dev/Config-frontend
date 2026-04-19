@@ -80,7 +80,7 @@ export default function NewPage() {
           <StepProject register={form.register} errors={form.formState.errors} />
         )}
         {currentStep === "brand" && (
-          <StepBrand register={form.register} errors={form.formState.errors} />
+          <StepBrand form={form} errors={form.formState.errors} />
         )}
         {currentStep === "pages" && (
           <StepPages form={form} errors={form.formState.errors} />
