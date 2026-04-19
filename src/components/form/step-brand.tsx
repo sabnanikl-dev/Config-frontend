@@ -39,9 +39,12 @@ export function StepBrand({ form, errors }: Props) {
   const { register, setValue, watch } = form
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
   const [dragActive, setDragActive] = React.useState(false)
-  const [previews, setPreviews] = React.useState<Record<string, string>>({})
+  const previewsRef = React.useRef<Record<number, string>>({})
+  const [previews, setPreviews] = React.useState<Record<number, string>>({})
   const [uploadNotice, setUploadNotice] = React.useState<string | null>(null)
   const assets = watch("content.assets") || []
+  const assetsRef = React.useRef(assets)
+  assetsRef.current = assets
 
   const updateAssets = React.useCallback((nextAssets: string[]) => {
     setValue("content.assets", nextAssets, { shouldDirty: true, shouldValidate: true })
@@ -60,35 +63,37 @@ export function StepBrand({ form, errors }: Props) {
       "Suggested paths were added to the config. Copy the real files into public/assets before shipping the scaffold."
     )
 
-    const currentAssets = watch("content.assets") || []
+    const currentAssets = assetsRef.current
     const nextAssets = [...currentAssets]
+
+    const startIndex = nextAssets.length - files.length
 
     setPreviews((current) => {
       const next = { ...current }
 
-      files.forEach((file) => {
+      files.forEach((file, i) => {
         const assetPath = `/assets/${normalizeAssetFilename(file.name)}`
         if (!nextAssets.includes(assetPath)) {
           nextAssets.push(assetPath)
         }
 
-        if (next[assetPath]) {
-          URL.revokeObjectURL(next[assetPath])
+        const idx = startIndex + i
+        if (previewsRef.current[idx]) {
+          URL.revokeObjectURL(previewsRef.current[idx])
         }
-        next[assetPath] = URL.createObjectURL(file)
+        const blobUrl = URL.createObjectURL(file)
+        previewsRef.current[idx] = blobUrl
+        next[idx] = blobUrl
       })
 
       return next
     })
 
     updateAssets(nextAssets)
-  }, [updateAssets, watch])
+  }, [updateAssets])
 
-  React.useEffect(() => {
-    return () => {
-      Object.values(previews).forEach((url) => URL.revokeObjectURL(url))
-    }
-  }, [previews])
+  // No explicit cleanup effect needed. Blob URLs are freed on page unload,
+  // and explicit revocations happen in addFiles (replace) and removeAsset (delete).
 
   function updateAsset(index: number, value: string) {
     const nextAssets = [...assets]
@@ -97,15 +102,17 @@ export function StepBrand({ form, errors }: Props) {
   }
 
   function removeAsset(index: number) {
-    const assetPath = assets[index]
-    updateAssets(assets.filter((_, assetIndex) => assetIndex !== index))
+    if (previewsRef.current[index]) {
+      URL.revokeObjectURL(previewsRef.current[index])
+      delete previewsRef.current[index]
+    }
     setPreviews((current) => {
-      if (!current[assetPath]) return current
-      URL.revokeObjectURL(current[assetPath])
       const next = { ...current }
-      delete next[assetPath]
+      if (!next[index]) return current
+      delete next[index]
       return next
     })
+    updateAssets(assets.filter((_, assetIndex) => assetIndex !== index))
   }
 
   return (
@@ -226,9 +233,9 @@ export function StepBrand({ form, errors }: Props) {
               <div key={`${assetPath}-${index}`} className="rounded-lg border border-border p-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div className="h-20 w-20 overflow-hidden rounded-md border border-border bg-accent/40">
-                    {previews[assetPath] ? (
+                    {previews[index] ? (
                       <Image
-                        src={previews[assetPath]}
+                        src={previews[index]}
                         alt={assetPath}
                         width={80}
                         height={80}
