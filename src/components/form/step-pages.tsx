@@ -20,6 +20,8 @@ const SECTION_OPTIONS = [
 
 export function StepPages({ form, errors }: Props) {
   const pages = form.watch("content.pages") || []
+  const [openInputIdx, setOpenInputIdx] = React.useState<number | null>(null)
+  const [customValue, setCustomValue] = React.useState("")
 
   function addPage() {
     form.setValue("content.pages", [
@@ -45,6 +47,17 @@ export function StepPages({ form, errors }: Props) {
   function updateField(index: number, field: "slug" | "description", value: string) {
     const fieldPath = `content.pages.${index}.${field}` as const
     form.setValue(fieldPath, value, { shouldDirty: true })
+  }
+
+  function addCustomSection(pageIndex: number) {
+    const name = customValue.trim()
+    if (!name) return
+    const current = pages[pageIndex]?.sections || []
+    if (current.includes(name)) return
+    const sectionsPath = `content.pages.${pageIndex}.sections` as const
+    form.setValue(sectionsPath, [...current, name], { shouldDirty: true })
+    setCustomValue("")
+    setOpenInputIdx(null)
   }
 
   function toggleSection(index: number, section: string) {
@@ -129,6 +142,52 @@ export function StepPages({ form, errors }: Props) {
                     {s}
                   </button>
                 ))}
+                {(page.sections || [])
+                  .filter((s) => !SECTION_OPTIONS.includes(s))
+                  .map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => toggleSection(i, s)}
+                      className="rounded-full px-3 py-1 text-xs transition-colors bg-primary text-primary-foreground"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                {openInputIdx === i ? (
+                  <div className="flex gap-1">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={customValue}
+                      onChange={(e) => setCustomValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); addCustomSection(i) }
+                        if (e.key === "Escape") { setOpenInputIdx(null); setCustomValue("") }
+                      }}
+                      placeholder="section-name"
+                      className="rounded-md border border-border bg-background px-2 py-1 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => addCustomSection(i)}
+                      className="rounded-md bg-primary px-2 py-1 text-xs text-white"
+                    >Add</button>
+                    <button
+                      type="button"
+                      onClick={() => { setOpenInputIdx(null); setCustomValue("") }}
+                      className="rounded-md border px-2 py-1 text-xs"
+                    >✕</button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setOpenInputIdx(i); setCustomValue("") }}
+                    className="rounded-full border border-dashed border-border px-3 py-1 text-xs text-muted hover:border-primary hover:text-primary"
+                  >
+                    + custom
+                  </button>
+                )}
               </div>
             </div>
 
