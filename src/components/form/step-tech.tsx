@@ -109,7 +109,13 @@ export function StepTech({ register }: Props) {
         <p className="text-sm text-muted-foreground mb-2">One package per line.</p>
         <textarea
           id="plugins"
-          {...register("tech.plugins")}
+          {...register("tech.plugins", {
+            setValueAs: (v: string) =>
+              v
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean),
+          })}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-mono"
           rows={4}
           placeholder="@vercel/analytics"
