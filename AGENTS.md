@@ -11,6 +11,19 @@ Internal configuration frontend for generating project specifications. Outputs `
 4. PR body must reference an Issue (`Fixes #N`)
 5. Self-review your diff before opening a PR
 6. Run end-session audit before signing off
+7. Every PR comment must end with a reviewer signature (see below)
+
+## Reviewer Signatures
+
+Every PR comment — review summaries, inline comments, approval/rejection notes — must end with a signature line identifying the agent:
+
+```
+— Hermes
+— Claude Code
+— Codex
+```
+
+This keeps accountability, thread context, and cross-review clarity intact when multiple agents touch the same PR.
 
 ## Tech Stack
 - Next.js 15 (App Router, **static export**)
