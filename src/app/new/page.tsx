@@ -7,14 +7,14 @@ import { ProjectConfigSchema, defaultConfig, type ProjectConfig } from "@/lib/co
 import { StepProject } from "@/components/form/step-project"
 import { StepBrand } from "@/components/form/step-brand"
 import { StepTech } from "@/components/form/step-tech"
-// StepPages is not yet exported to keep the wizard minimal for now — Issue #4
-// import { StepPages } from "@/components/form/step-pages"
+// StepPages is imported when needed for Issue #4
+import { StepPages } from "@/components/form/step-pages"
 import { StepReview } from "@/components/form/step-review"
 
 const steps = [
   { id: "project" as const, label: "Project Info", icon: "📋" },
   { id: "brand" as const, label: "Brand", icon: "🎨" },
-  // { id: "pages", label: "Pages", icon: "📄" },
+  { id: "pages" as const, label: "Pages", icon: "📄" },
   { id: "tech" as const, label: "Tech Stack", icon: "⚙️" },
   { id: "review" as const, label: "Review & Export", icon: "🚀" },
 ]
@@ -80,9 +80,9 @@ export default function NewPage() {
         {currentStep === "brand" && (
           <StepBrand register={form.register} errors={form.formState.errors} />
         )}
-        {/* {currentStep === "pages" && (
+        {currentStep === "pages" && (
           <StepPages form={form} errors={form.formState.errors} />
-        )} */}
+        )}
         {currentStep === "tech" && (
           <StepTech register={form.register} errors={form.formState.errors} />
         )}

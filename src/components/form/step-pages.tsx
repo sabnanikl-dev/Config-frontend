@@ -1,37 +1,14 @@
 "use client"
 
-import React, { useState } from "react"
-import { cn } from "@/lib/utils/cn"
-import type { FieldErrors, UseFormRegister } from "react-hook-form"
+import React from "react"
+import { type UseFormReturn, type FieldErrors } from "react-hook-form"
 import type { ProjectConfig } from "@/lib/config/schema"
+import { cn } from "@/lib/utils/cn"
 
 interface Props {
-  register: UseFormRegister<ProjectConfig>
+  form: UseFormReturn<ProjectConfig>
   errors: FieldErrors<ProjectConfig>
 }
-
-const SectionOption = ({
-  label,
-  checked,
-  onToggle,
-}: {
-  label: string
-  checked: boolean
-  onToggle: () => void
-}) => (
-  <button
-    type="button"
-    onClick={onToggle}
-    className={cn(
-      "rounded-full px-3 py-1 text-xs transition-colors",
-      checked
-        ? "bg-primary text-primary-foreground"
-        : "border border-border bg-background hover:bg-accent/50"
-    )}
-  >
-    {label}
-  </button>
-)
 
 const SECTION_OPTIONS = [
   "hero", "about", "services", "team", "testimonials",
@@ -41,29 +18,19 @@ const SECTION_OPTIONS = [
   "featured-products", "image-grid", "video",
 ]
 
-export function StepPages({ register, errors }: Props) {
-  // For dynamic pages management, we use a simple state-based approach
-  // The actual data will be synced to the form via the register call on submit
-  const pagesStr = typeof window !== "undefined"
-    ? window.localStorage.getItem("wizard_pages") ||
-      JSON.stringify([{ slug: "home", sections: ["hero", "footer"], description: "" }])
-    : JSON.stringify([{ slug: "home", sections: ["hero", "footer"], description: "" }])
-
-  const [pages, setPages] = React.useState<
-    Array<{ slug: string; sections: string[]; description: string }>
-  >(() => JSON.parse(pagesStr))
+export function StepPages({ form, errors }: Props) {
+  const pages = form.watch("content.pages") || []
 
   function addPage() {
-    const newPages = [...pages, { slug: "", sections: [], description: "" }]
-    setPages(newPages)
-    window.localStorage.setItem("wizard_pages", JSON.stringify(newPages))
+    form.setValue("content.pages", [
+      ...pages,
+      { slug: "", sections: [], description: "" },
+    ], { shouldDirty: true, shouldValidate: true })
   }
 
   function removePage(index: number) {
     if (pages.length <= 1) return
-    const newPages = pages.filter((_, i) => i !== index)
-    setPages(newPages)
-    window.localStorage.setItem("wizard_pages", JSON.stringify(newPages))
+    form.setValue("content.pages", pages.filter((_, i) => i !== index), { shouldDirty: true })
   }
 
   function movePage(from: number, delta: number) {
@@ -72,19 +39,19 @@ export function StepPages({ register, errors }: Props) {
     const copy = [...pages]
     const [item] = copy.splice(from, 1)
     copy.splice(to, 0, item)
-    setPages(copy)
-    window.localStorage.setItem("wizard_pages", JSON.stringify(copy))
+    form.setValue("content.pages", copy, { shouldDirty: true })
   }
 
-  function toggleSection(pageIndex: number, section: string) {
-    const copy = [...pages]
-    const page = copy[pageIndex]
-    const sections = page.sections.includes(section)
-      ? page.sections.filter((s) => s !== section)
-      : [...page.sections, section]
-    copy[pageIndex] = { ...page, sections }
-    setPages(copy)
-    window.localStorage.setItem("wizard_pages", JSON.stringify(copy))
+  function updateField(index: number, field: string, value: string) {
+    form.setValue(`content.pages.${index}.${field}` as any, value, { shouldDirty: true })
+  }
+
+  function toggleSection(index: number, section: string) {
+    const current = pages[index]?.sections || []
+    const sections = current.includes(section)
+      ? current.filter((s: string) => s !== section)
+      : [...current, section]
+    form.setValue(`content.pages.${index}.sections` as any, sections, { shouldDirty: true })
   }
 
   return (
@@ -105,23 +72,40 @@ export function StepPages({ register, errors }: Props) {
         </button>
       </div>
 
+      {errors.content?.pages && (
+        <p className="text-sm text-red-600">{errors.content.pages.message}</p>
+      )}
+
       <div className="space-y-4">
         {pages.map((page, i) => (
           <div key={i} className="rounded-lg border p-4 space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">#{i + 1}</span>
               <input
-                {...register(`content.pages.${i}.slug` as const)}
+                type="text"
+                value={page.slug || ""}
+                onChange={(e) => updateField(i, "slug", e.target.value)}
                 className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm"
                 placeholder="page-slug"
               />
               <div className="flex gap-1">
-                <button type="button" onClick={() => movePage(i, -1)} disabled={i === 0}
-                  className="rounded border px-2 py-1 text-xs disabled:opacity-30">↑</button>
-                <button type="button" onClick={() => movePage(i, 1)} disabled={i === pages.length - 1}
-                  className="rounded border px-2 py-1 text-xs disabled:opacity-30">↓</button>
-                <button type="button" onClick={() => removePage(i)}
-                  className="rounded border px-2 py-1 text-xs text-red-500">✕</button>
+                <button
+                  type="button"
+                  onClick={() => movePage(i, -1)}
+                  disabled={i === 0}
+                  className="rounded border px-2 py-1 text-xs disabled:opacity-30"
+                >↑</button>
+                <button
+                  type="button"
+                  onClick={() => movePage(i, 1)}
+                  disabled={i === pages.length - 1}
+                  className="rounded border px-2 py-1 text-xs disabled:opacity-30"
+                >↓</button>
+                <button
+                  type="button"
+                  onClick={() => removePage(i)}
+                  className="rounded border px-2 py-1 text-xs text-red-500"
+                >✕</button>
               </div>
             </div>
 
@@ -129,18 +113,27 @@ export function StepPages({ register, errors }: Props) {
               <p className="text-sm font-medium mb-2">Sections</p>
               <div className="flex flex-wrap gap-2">
                 {SECTION_OPTIONS.map((s) => (
-                  <SectionOption
+                  <button
                     key={s}
-                    label={s}
-                    checked={page.sections.includes(s)}
-                    onToggle={() => toggleSection(i, s)}
-                  />
+                    type="button"
+                    onClick={() => toggleSection(i, s)}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-xs transition-colors",
+                      (page.sections || []).includes(s)
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border bg-background hover:bg-accent/50"
+                    )}
+                  >
+                    {s}
+                  </button>
                 ))}
               </div>
             </div>
 
             <input
-              {...register(`content.pages.${i}.description` as const)}
+              type="text"
+              value={page.description || ""}
+              onChange={(e) => updateField(i, "description", e.target.value)}
               className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm"
               placeholder="Description (optional)"
             />
