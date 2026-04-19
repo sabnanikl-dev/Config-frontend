@@ -112,7 +112,9 @@ export function StepTech({ register }: Props) {
           {...register("tech.plugins", {
             setValueAs: (v: unknown) => {
               if (Array.isArray(v)) {
-                return v.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+                return v
+                  .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+                  .map((item) => item.trim())
               }
 
               if (typeof v !== "string") {
