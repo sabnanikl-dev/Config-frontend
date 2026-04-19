@@ -18,8 +18,18 @@ const SECTION_OPTIONS = [
   "featured-products", "image-grid", "video",
 ]
 
+function normalizeSectionId(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
 export function StepPages({ form, errors }: Props) {
   const pages = form.watch("content.pages") || []
+  const [openInputIdx, setOpenInputIdx] = React.useState<number | null>(null)
+  const [customValue, setCustomValue] = React.useState("")
 
   function addPage() {
     form.setValue("content.pages", [
@@ -54,6 +64,19 @@ export function StepPages({ form, errors }: Props) {
       (value || undefined) as ProjectConfig["content"]["pages"][number]["type"],
       { shouldDirty: true }
     )
+  }
+
+  function addCustomSection(pageIndex: number) {
+    const name = normalizeSectionId(customValue)
+    if (!name) return
+
+    const current = pages[pageIndex]?.sections || []
+    if (current.includes(name)) return
+
+    const sectionsPath = `content.pages.${pageIndex}.sections` as const
+    form.setValue(sectionsPath, [...current, name], { shouldDirty: true })
+    setCustomValue("")
+    setOpenInputIdx(null)
   }
 
   function toggleSection(index: number, section: string) {
@@ -156,6 +179,68 @@ export function StepPages({ form, errors }: Props) {
                     {s}
                   </button>
                 ))}
+                {(page.sections || [])
+                  .filter((s) => !SECTION_OPTIONS.includes(s))
+                  .map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => toggleSection(i, s)}
+                      className="rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground transition-colors"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                {openInputIdx === i ? (
+                  <div className="flex gap-1">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={customValue}
+                      onChange={(e) => setCustomValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          addCustomSection(i)
+                        }
+                        if (e.key === "Escape") {
+                          setOpenInputIdx(null)
+                          setCustomValue("")
+                        }
+                      }}
+                      placeholder="section-name"
+                      className="rounded-md border border-border bg-background px-2 py-1 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => addCustomSection(i)}
+                      className="rounded-md bg-primary px-2 py-1 text-xs text-white"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenInputIdx(null)
+                        setCustomValue("")
+                      }}
+                      className="rounded-md border px-2 py-1 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenInputIdx(i)
+                      setCustomValue("")
+                    }}
+                    className="rounded-full border border-dashed border-border px-3 py-1 text-xs text-muted hover:border-primary hover:text-primary"
+                  >
+                    + custom
+                  </button>
+                )}
               </div>
             </div>
 
