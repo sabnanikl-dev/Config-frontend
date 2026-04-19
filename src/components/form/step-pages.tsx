@@ -18,6 +18,14 @@ const SECTION_OPTIONS = [
   "featured-products", "image-grid", "video",
 ]
 
+function normalizeSectionId(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
 export function StepPages({ form, errors }: Props) {
   const pages = form.watch("content.pages") || []
   const [openInputIdx, setOpenInputIdx] = React.useState<number | null>(null)
@@ -50,7 +58,7 @@ export function StepPages({ form, errors }: Props) {
   }
 
   function addCustomSection(pageIndex: number) {
-    const name = customValue.trim()
+    const name = normalizeSectionId(customValue)
     if (!name) return
     const current = pages[pageIndex]?.sections || []
     if (current.includes(name)) return
