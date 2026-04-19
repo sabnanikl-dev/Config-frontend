@@ -110,11 +110,20 @@ export function StepTech({ register }: Props) {
         <textarea
           id="plugins"
           {...register("tech.plugins", {
-            setValueAs: (v: string) =>
-              v
+            setValueAs: (v: unknown) => {
+              if (Array.isArray(v)) {
+                return v.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+              }
+
+              if (typeof v !== "string") {
+                return []
+              }
+
+              return v
                 .split("\n")
                 .map((line) => line.trim())
-                .filter(Boolean),
+                .filter(Boolean)
+            },
           })}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-mono"
           rows={4}
